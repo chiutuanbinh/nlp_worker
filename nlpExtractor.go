@@ -14,6 +14,9 @@ import (
 func nlpExtractor(wg *sync.WaitGroup, jobs <-chan string) {
 	defer wg.Done()
 	for job := range jobs {
+		if job == "DONE" {
+			break
+		}
 		article, err := mongodb.GetByID(job)
 		if err != nil {
 			continue
@@ -26,13 +29,17 @@ func nlpExtractor(wg *sync.WaitGroup, jobs <-chan string) {
 			// log.Printf("%+v\n", cx)
 			content.WriteString(cx.Content)
 		}
-		nlpResp := nlp.NLPExtract(content.String())
 		if article.Nlp.NamedEntities == nil {
 			article.Nlp.NamedEntities = make(map[string][]string)
+		} else {
+			continue
 		}
 		if article.Nlp.Phrases == nil {
 			article.Nlp.Phrases = make(map[string][]string)
+		} else {
+			continue
 		}
+		nlpResp := nlp.NLPExtract(content.String())
 		ne := article.Nlp.NamedEntities
 		for _, n := range nlpResp.NamedEntities {
 			_, ok := ne[n.Type]

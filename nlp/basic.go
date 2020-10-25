@@ -44,7 +44,10 @@ func Tokenize(input string) []string {
 }
 
 func NLPExtract(input string) NLPResp {
-	request, err := http.NewRequest("POST", nlpNERUrl, bytes.NewBuffer([]byte(input)))
+	var request *http.Request
+	var err error
+	request, err = http.NewRequest("POST", nlpNERUrl, bytes.NewBuffer([]byte(input)))
+
 	request.Header.Set("Content-type", "application/json")
 	if err != nil {
 		log.Fatal(err)
