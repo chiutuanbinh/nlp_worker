@@ -21,11 +21,12 @@ func nlpExtractor(wg *sync.WaitGroup, jobs <-chan string) {
 		if err != nil {
 			continue
 		}
+
 		content := bytes.Buffer{}
 		for _, c := range article.Content.Parts {
-
+			// log.Printf("VALUE %v TYPE %T \n", c.(primitive.D)[1].Value, c)
 			var cx xtype.Paragraph
-			cx.Content = c.(primitive.D)[0].Value.(string)
+			cx.Content = c.(primitive.D)[1].Value.(string)
 			// log.Printf("%+v\n", cx)
 			content.WriteString(cx.Content)
 		}

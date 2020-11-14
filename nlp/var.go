@@ -7,7 +7,7 @@ import (
 
 var nlpDomain = util.Config.NLP.Domain
 var nlpTokenizeURL = nlpDomain + "/tokenize"
-var nlpNERUrl = nlpDomain + "/ner"
+var nlpNERUrl = nlpDomain + "/nertag"
 var timeout = 10 * time.Second
 
 const (

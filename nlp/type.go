@@ -14,3 +14,7 @@ type NLPResp struct {
 	Phrases       []PhrasesT
 	NamedEntities []NamedEntitiesT
 }
+
+type NLPReq struct {
+	Sentence string `json:"sentence,omitempty"`
+}

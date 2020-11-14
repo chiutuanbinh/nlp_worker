@@ -99,6 +99,7 @@ func Iter(outchan chan<- string) {
 			return
 		}
 		outchan <- tmp.ID
+		// outchan <- "DONE"
 	}
 
 }

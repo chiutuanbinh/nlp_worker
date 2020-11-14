@@ -15,7 +15,13 @@ func init() {
 }
 
 func Tokenize(input string) []string {
-	request, err := http.NewRequest("POST", nlpTokenizeURL, bytes.NewBuffer([]byte(input)))
+	req := NLPReq{Sentence: input}
+	byteArr, err := json.Marshal(req)
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
+	request, err := http.NewRequest("POST", nlpTokenizeURL, bytes.NewBuffer(byteArr))
 	request.Header.Set("Content-type", "application/json")
 	if err != nil {
 		log.Fatal(err)
@@ -43,10 +49,16 @@ func Tokenize(input string) []string {
 
 }
 
-func NLPExtract(input string) NLPResp {
+func NLPExtractX(input string) NLPResp {
 	var request *http.Request
 	var err error
-	request, err = http.NewRequest("POST", nlpNERUrl, bytes.NewBuffer([]byte(input)))
+	req := NLPReq{Sentence: input}
+	byteArr, err := json.Marshal(req)
+	if err != nil {
+		log.Fatal(err)
+		return empty
+	}
+	request, err = http.NewRequest("POST", nlpNERUrl, bytes.NewBuffer(byteArr))
 
 	request.Header.Set("Content-type", "application/json")
 	if err != nil {
@@ -108,6 +120,55 @@ func NLPExtract(input string) NLPResp {
 	}
 	if nerBuffer.Len() != 0 {
 		nlpResp.NamedEntities = append(nlpResp.NamedEntities, NamedEntitiesT{Text: nerBuffer.String(), Type: lastNeType})
+	}
+	return nlpResp
+}
+
+func NLPExtract(input string) NLPResp {
+	if len(input) == 0 {
+		return empty
+	}
+	var request *http.Request
+	var err error
+	req := NLPReq{Sentence: input}
+	byteArr, err := json.Marshal(req)
+	if err != nil {
+		log.Fatal(err)
+		return empty
+	}
+	request, err = http.NewRequest("POST", nlpNERUrl, bytes.NewBuffer(byteArr))
+
+	request.Header.Set("Content-type", "application/json")
+	if err != nil {
+		log.Fatal(err)
+		return empty
+	}
+
+	client := http.Client{}
+
+	resp, err := client.Do(request)
+	if err != nil {
+		log.Fatal(err)
+		return empty
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+		return empty
+	}
+
+	var nlpResp = NLPResp{Phrases: make([]PhrasesT, 0), NamedEntities: make([]NamedEntitiesT, 0)}
+	var res map[string][]string
+	json.Unmarshal([]byte(body), &res)
+	for key, val := range res {
+		nerType, ok := nerTypeMapper[key]
+		if !ok {
+			nerType = UNKNOWN
+		}
+		for _, v := range val {
+			nlpResp.NamedEntities = append(nlpResp.NamedEntities, NamedEntitiesT{Text: v, Type: nerType})
+		}
 	}
 	return nlpResp
 }
